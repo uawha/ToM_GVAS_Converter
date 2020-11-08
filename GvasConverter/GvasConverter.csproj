@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Reference Include="CommandLine">
-      <HintPath>..\..\lib\CommandLine\4.0.0\netstandard2.0\CommandLine.dll</HintPath>
+      <HintPath>..\lib\CommandLine\4.0.0\netstandard2.0\CommandLine.dll</HintPath>
     </Reference>
   </ItemGroup>
 
