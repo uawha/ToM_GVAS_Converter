@@ -1,0 +1,51 @@
+﻿
+Option group type 的定义是，某个 class / struct，它的某个 field 有 OptionAttribute，或者是 OptionGroupAttribute。
+这个是为了解决 mix in 的问题。在版本 1.x 里的解决办法是 array，后来我放弃了这种办法，因为各种不便。
+版本 2.x 从来就没发布过，只在概念中存在。
+版本 3.x 直接扔掉了。现在为了这个东西搞了 4.0
+因为 sequence style 彻底不支持了，所以一切变得方便许多。
+在 3.x 可以用 class inherit 作为 mix in，但是局限性很多，而且不方便。
+这里的 mix in 处理方式是，你可以把某个 field 作为 option group，只要标记 OptionGroupAttribute。
+这样框架就把它作为 option group 而不是 option。
+field 上的 OptionAttribute 和 OptionGroupAttribute 最多只能有一个，否则会产生歧义。
+这仍有个不便之处，mix 在同一 group 下各种 group 不能有重名的 option。
+这也是 command line 不便之处，一个 line 难以处理 hierarchy 的参数形式。非需要的话，直接传一个 json 不是更好。
+
+OptionValueConfigAttribute 的
+  MustHaveValue 以及 MustHaveNonemptyValue
+  可以仅声明 MustHaveNonemptyValue = true，在检查效果上等于 MustHaveValue = true && MustHaveNonemptyValue = true
+
+
+ProgramFramework.Run 的流程
+
+所有 verb，option name，都是 case insensitive
+
+1. 找 field
+   一个登记的 class，它的所有 field，如果有 OptionAttribute，则被纳入考量。
+
+2. 找相关的 OptionRequireAttribute 以及 OptionValueConfigAttribute
+   被考量的任一 field，设其 T 是 该 field 的 type。如果没有 OptionValueConfigAttribute，
+   则会查找是不是有一个登记的 IOptionValueConverter<T>。
+   * 登记用 ProgramFramework.RegisterOptionConverter<T>。
+   * 内置的 OptionConverter 有 int, bool, string。
+   * RegisterOptionConverter 有个 parameter 是 replaceIfRegistered，可以用它来覆盖内置的。
+   找到了就去询问登记的 IOptionValueConverter<>.GetOptionValueConfig，
+   找不到就算找不到。如果找到了，但是 GetOptionValueConfig 返回 null，那也算找不到。
+
+3. 对 args[] 执行检查
+   3.1 verb 是否符合登记的情况
+   3.2 是否有未知的 option
+   3.3 所有标记 OptionRequireAttribute 的 option 是否给出
+   3.4 如果有 OptionValueConfigAttribute，是否符合要求。
+       框架如果找不到 field 的 OptionValueConfigAttribute，这一步会被跳过。这个必须设计为可被跳过的，
+       因为 OptionValueConfigAttribute 的*值域*并不是全体规则的一个分类。
+
+4. 创建 args instance
+   然后是 load args[] to instance。会去找 IOptionValueConverter<T>，找到了就 IOptionValueConverter<T>.Convert
+   如果找不到，那会直接试图把一个 string[] assign 给那个 field。
+
+5. 运行
+   全部通过之后，去登记的 ICommandRunner<T>.Check，通过之后就 ICommandRunner<T>.Run
+   ICommandRunner<T>.Check 以及 ICommandRunner<T>.Run 的 exception 处理是 re-throw。
+   必须设计成这个样子。鬼知道用户会拿这个异常来干嘛。
+
