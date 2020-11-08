@@ -1,0 +1,13 @@
+﻿System.Object
+	UE_Property
+		UE_None (used by format, never by data)
+	UE_Value (abstract)
+		UE_<T> bool, byte, int, float, string
+		UE_Array
+			UE_StructArray
+		UE_Map
+		UE_Enum
+		UE_Struct (abstract)
+			UE_Struct_Generic
+			UE_Struct_Quat
+			UE_Struct_Vector

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GvasConverter": {
+      "commandName": "Project",
+      "commandLineArgs": "to-savg -i:SDAT07.sav.json -o:SDAT07.sav.json.sav"
+    }
+  }
+}
